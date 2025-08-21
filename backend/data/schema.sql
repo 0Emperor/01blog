@@ -1,48 +1,59 @@
--- Users
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
     email TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL,
-    role TEXT DEFAULT 'reader',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    password_hash TEXT NOT NULL,
+    role INTEGER NOT NULL DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Posts
-CREATE TABLE posts (
+CREATE TABLE IF NOT EXISTS posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     author_id INTEGER NOT NULL,
     title TEXT NOT NULL,
     content TEXT,
-    published BOOLEAN DEFAULT 0,
+    media_url TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(author_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Comments
-CREATE TABLE comments (
+CREATE TABLE IF NOT EXISTS comments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     post_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
-    content TEXT,
+    content TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
-    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Tags (optional)
-CREATE TABLE tags (
+CREATE TABLE IF NOT EXISTS likes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE NOT NULL
+    post_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(post_id, user_id),
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE post_tags (
-    post_id INTEGER NOT NULL,
-    tag_id INTEGER NOT NULL,
-    PRIMARY KEY(post_id, tag_id),
-    FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
-    FOREIGN KEY(tag_id) REFERENCES tags(id) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS subscriptions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    subscriber_id INTEGER NOT NULL,
+    subscribed_to_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(subscriber_id, subscribed_to_id),
+    FOREIGN KEY (subscriber_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (subscribed_to_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    reporter_id INTEGER NOT NULL,
+    reported_user_id INTEGER NOT NULL,
+    reason TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (reported_user_id) REFERENCES users(id) ON DELETE CASCADE
 );
