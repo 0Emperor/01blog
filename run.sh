@@ -36,6 +36,20 @@ start_frontend() {
     cd - >/dev/null
     echo "Frontend started on port $FRONTEND_PORT : http://localhost:$FRONTEND_PORT"
 }
+init_db() {
+    DB_FILE="backend/data/01blog.db"
+    SCHEMA_FILE="backend/data/schema.sql"
+
+    mkdir -p backend/data
+
+    if [ ! -f "$DB_FILE" ]; then
+        echo "Initializing SQLite database..."
+        sqlite3 "$DB_FILE" < "$SCHEMA_FILE"
+        echo "Database created at $DB_FILE"
+    else
+        echo "Database already exists at $DB_FILE"
+    fi
+}
 
 stop_all() {
     echo "Stopping frontend..."
@@ -46,6 +60,7 @@ stop_all() {
 
 
 start_all() {
+    init_db || { echo "Cannot nuild the db.";exit 1; }
     start_backend || { echo "Cannot start frontend without backend."; stop_all; exit 1; }
     start_frontend || { echo "Frontend failed to start."; stop_all; exit 1; }
     echo "All services started successfully."

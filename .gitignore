@@ -5,5 +5,5 @@
 
 .vscode/
 
-
+*.db
 *.log
