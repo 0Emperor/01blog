@@ -1,5 +1,9 @@
 package blog.blog.controlers;
+
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,20 +17,38 @@ import org.springframework.web.bind.annotation.RestController;
 
 import blog.blog.model.User;
 import blog.blog.service.UserService;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
 
     private final UserService userService;
+
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
-    @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
+    @PostMapping("/register")
+    public ResponseEntity<Map<String, Object>> createUser(@RequestBody User user) {
         User saved = userService.createUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        if (saved == null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        }
+        String jwt = Jwts.builder()
+                .setSubject(user.getUsername())
+                .claim("role", user.getRole())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 86400000))
+                .signWith(Keys.hmacShaKeyFor(blog.blog.interceptor.JwtInterceptor.getSecret().getBytes()),
+                        SignatureAlgorithm.HS256)
+                .compact();
+        Map<String, Object> res = new HashMap<>();
+        res.put("jwt", jwt);
+        res.put("user", saved);
+        return ResponseEntity.status(HttpStatus.CREATED).header("Authorization", "Bearer " + jwt).body(res);
     }
 
     @GetMapping("/{id}")

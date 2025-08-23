@@ -1,7 +1,6 @@
 package blog.blog.model;
 
-import org.springframework.boot.context.properties.bind.DefaultValue;
-
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -9,17 +8,18 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 
 @Entity
-@Table(name = "users") 
+@Table(name = "users")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Boolean role;
+    @Column(unique = true)
     private String username;
     private String name;
+    @Column(unique = true)
     private String email;
-
     // getters & setters
     public String getUsername() {
         return username;

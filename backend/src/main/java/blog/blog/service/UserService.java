@@ -4,7 +4,7 @@ import blog.blog.model.User;
 import blog.blog.repository.UserRepository;
 
 import org.apache.velocity.exception.ResourceNotFoundException;
-import org.hibernate.annotations.NotFound;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,12 +19,17 @@ public class UserService {
     }
 
     public User createUser(User user) {
-        return userRepository.save(user);
+        try {
+
+            return userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            return null;
+        }
     }
 
     public User getUser(Integer id) {
         return userRepository.findById(id)
-                .orElseThrow(()->new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     public List<User> getAllUsers() {
